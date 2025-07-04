@@ -3,6 +3,8 @@ from math import inf
 import pyodbc
 from decimal import *
 import datetime
+import plotly.graph_objects as go
+import plotly.express as px
  
 def connect_to_database():
     connection_string = (
@@ -35,7 +37,7 @@ def get_columns(col1 = "OrderDate" , col2 = "SubTotal"):
     if not conn:
         return
 
-    sql_command = input("Enter an SQL command (or type 'exit' to quit): ").strip()
+    sql_command = input("Enter an SQL command: ").strip()
     db = execute_sql_command(conn, sql_command)
     wanted = []
     year = inf
@@ -52,7 +54,7 @@ def get_columns(col1 = "OrderDate" , col2 = "SubTotal"):
         for x in wanted:
             if int(x[0][:4]) == int(year):
                 total += float(x[1])
-        totals.update({year : total})
+        totals.update({str(year) : total})
         year += 1
         total = 0
         
@@ -60,20 +62,31 @@ def get_columns(col1 = "OrderDate" , col2 = "SubTotal"):
     conn.close()
     print("Connection closed.")
     return totals
- 
- 
-plt.style.use('_mpl-gallery')
- 
+
 def graph(data: dict):
-    fig, ax = plt.subplots(figsize=(10000000, 1000000))  # Adjust grid (figure) size
-    fig.subplots_adjust(left=0.2, right=0.8, top=0.8, bottom=0.2)  # Add padding
- 
-    ax.plot(list(data.keys()), list(data.values()))
-    print(list(data.keys()), list(data.values()))
- 
-    ax.set_ylabel('Sales')
-    ax.set_xlabel('Time')
-    plt.show()
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=list(data.keys()),
+        y=list(data.values())
+        )
+    )
+    fig.update_layout(
+        title=dict(
+            text='Total sales by year'
+        ),
+        xaxis=dict(
+            title=dict(
+                text='Year'
+            )
+        ),
+        yaxis=dict(
+            title=dict(
+                text='Total Sales'
+            )
+        ),
+    )
+    fig.show()
+
 
 if __name__ == "__main__":
     graph(get_columns())
